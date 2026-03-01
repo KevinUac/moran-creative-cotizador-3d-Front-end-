@@ -1,18 +1,57 @@
-import { FiArrowRight, FiZap, FiClock, FiTarget, FiTrendingUp, FiX } from 'react-icons/fi';
+import { FiArrowRight, FiZap, FiClock, FiTarget, FiTrendingUp, FiX, FiChevronRight } from 'react-icons/fi';
 import { LuLayers, LuPalette, LuBox } from 'react-icons/lu';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { translations } from '../translations';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ChatWidget from '../components/ChatWidget';
 
+// Importar assets del hero
+import hero1 from '../assets/hero-1.png';
+import hero2 from '../assets/hero-2.png';
+import hero3 from '../assets/hero-3.png';
+
 export default function MainMenu({ onNavigate }) {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const { language } = useLanguage();
   const t = translations[language];
-  
+
+  const slides = [
+    {
+      id: 0,
+      title: t.heroSlide1Title,
+      description: t.heroSlide1Desc,
+      image: hero1,
+      tag: t.impresionProfesional
+    },
+    {
+      id: 1,
+      title: t.heroSlide2Title,
+      description: t.heroSlide2Desc,
+      image: hero2,
+      tag: 'Diseño e Innovación'
+    },
+    {
+      id: 2,
+      title: t.heroSlide3Title,
+      description: t.heroSlide3Desc,
+      image: hero3,
+      tag: 'Materiales Premium'
+    }
+  ];
+
+  // Timer para cambio automático
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
   const features = [
+    // ... (resto del código igual hasta el return)
     {
       icon: <FiZap size={24} />,
       title: t.rapido,
@@ -109,32 +148,77 @@ export default function MainMenu({ onNavigate }) {
     <div className="min-h-screen bg-white flex flex-col">
       <Header onNavigate={onNavigate} currentPage="mainmenu" />
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-          <div className="absolute -left-4 top-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-block mb-6 px-4 py-2 bg-blue-500/20 border border-blue-400/30 rounded-full">
-            <span className="text-sm font-semibold text-blue-300">{t.impresionProfesional}</span>
-          </div>
-          
-          <h1 className="text-6xl font-bold mb-6 leading-tight">
-            {t.convierteIdeas}
-          </h1>
-          
-          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            {t.descripcionPrincipal}
-          </p>
-          
-          <button 
-            onClick={() => onNavigate('upload')} 
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all transform hover:scale-105 shadow-lg"
+      {/* Hero Section - NVIDIA Style Carousel */}
+      <section className="relative h-[650px] bg-[#000] overflow-hidden flex items-center">
+        {/* Background Image with Crossfade */}
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
           >
-            {t.comenzar} <FiArrowRight size={20} />
-          </button>
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover object-center scale-105"
+            />
+          </div>
+        ))}
+
+        <div className="relative z-20 max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Left Content */}
+          <div className="lg:col-span-7 text-left">
+            <div className="overflow-hidden mb-4">
+              <span className="inline-block px-3 py-1 bg-[#0ea5e9] text-black text-[10px] font-black uppercase tracking-widest animate-slideUp">
+                {slides[currentSlide].tag}
+              </span>
+            </div>
+
+            <div className="overflow-hidden mb-6 h-[150px] md:h-[180px] lg:h-[220px]">
+              <h1 className="text-4xl lg:text-7xl font-black text-white leading-[1.1] animate-slideUp">
+                {slides[currentSlide].title}
+              </h1>
+            </div>
+
+            <div className="overflow-hidden mb-10">
+              <p className="text-lg lg:text-xl text-gray-300 max-w-xl animate-slideUp animation-delay-200">
+                {slides[currentSlide].description}
+              </p>
+            </div>
+
+            <button
+              onClick={() => onNavigate('upload')}
+              className="group inline-flex items-center gap-4 px-10 py-4 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black uppercase tracking-widest text-sm transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(14,165,233,0.3)]"
+            >
+              {t.comenzar} <FiChevronRight size={22} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          {/* Right Controls (Thumbnails) */}
+          <div className="lg:col-span-5 flex flex-col gap-3 hidden lg:flex justify-center items-end">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.id}
+                onClick={() => setCurrentSlide(index)}
+                className={`group relative w-72 p-5 text-left border-l-4 transition-all duration-300 backdrop-blur-md ${index === currentSlide ? 'border-red-500 bg-white/10' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                  }`}
+              >
+                <div className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 group-hover:text-red-500 transition-colors">
+                  0{index + 1} PROYECTO
+                </div>
+                <div className={`text-xs font-black uppercase tracking-wider transition-colors ${index === currentSlide ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'
+                  }`}>
+                  {slide.tag}
+                </div>
+
+                {/* Progress bar for active slide */}
+                {index === currentSlide && (
+                  <div className="absolute bottom-0 left-0 h-[3px] bg-red-500 animate-progress-bar" />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -142,7 +226,7 @@ export default function MainMenu({ onNavigate }) {
       <section className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">{t.porQueElegirnos}</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, idx) => (
               <div key={idx} className="group p-6 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-xl transition-all duration-300">
@@ -160,11 +244,11 @@ export default function MainMenu({ onNavigate }) {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-900">{t.materialesDisponibles}</h2>
           <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">{t.detallesMateriales}</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {materials.map((material, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 onClick={() => setSelectedMaterial(material)}
                 className="bg-white p-8 rounded-2xl border border-slate-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 cursor-pointer transform hover:scale-105"
               >
@@ -190,17 +274,17 @@ export default function MainMenu({ onNavigate }) {
                 <div className="text-white text-4xl">{selectedMaterial.icon}</div>
                 <h2 className="text-3xl font-bold">{selectedMaterial.details.title}</h2>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedMaterial(null)}
                 className="text-white hover:bg-white/20 p-2 rounded-lg transition"
               >
                 <FiX size={24} />
               </button>
             </div>
-            
+
             <div className="p-8">
               <p className="text-lg text-gray-700 mb-6">{selectedMaterial.details.description}</p>
-              
+
               <div className="grid grid-cols-2 gap-6 mb-8">
                 <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
                   <h3 className="font-semibold text-gray-900 mb-2">📍 {t.mejorPara}</h3>
@@ -211,7 +295,7 @@ export default function MainMenu({ onNavigate }) {
                   <p className="text-sm text-gray-700">{selectedMaterial.details.quality}</p>
                 </div>
               </div>
-              
+
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.caracteristicasPrincipales}</h3>
                 <ul className="space-y-2">
@@ -223,14 +307,14 @@ export default function MainMenu({ onNavigate }) {
                   ))}
                 </ul>
               </div>
-              
+
               <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-6 mb-6">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">{t.precioPorGramo}</p>
                     <p className="text-3xl font-bold text-blue-600">{selectedMaterial.price}</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
                       setSelectedMaterial(null);
                       onNavigate('upload');
@@ -250,7 +334,7 @@ export default function MainMenu({ onNavigate }) {
       <section className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">{t.nuestro}</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {steps.map((step, idx) => (
               <div key={idx} className="relative">

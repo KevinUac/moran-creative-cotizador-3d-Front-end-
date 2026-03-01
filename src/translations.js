@@ -59,6 +59,14 @@ export const translations = {
     pasoTresDesc: 'Detallada y transparente',
     pasoCuatro: 'Impresión',
     pasoCuatroDesc: 'Profesional y precisa',
+    
+    // Hero Slider
+    heroSlide1Title: 'Potencia Industrial en tus Manos',
+    heroSlide1Desc: 'Nuestras impresoras de última generación garantizan resultados de grado ingeniería para tus proyectos más exigentes.',
+    heroSlide2Title: 'Del Concepto al Prototipo Relámpago',
+    heroSlide2Desc: 'Acelera tu ciclo de diseño con maquetas físicas de alta fidelidad. Visualiza y prueba tus ideas en tiempo récord.',
+    heroSlide3Title: 'Materiales que Rompen Límites',
+    heroSlide3Desc: 'Desde resinas ultra-detalladas hasta filamentos reforzados. Elegimos la composición exacta para cada aplicación física.',
 
     // Material Details
     impresionPLA: 'Impresión PLA / PLA+',
@@ -177,6 +185,14 @@ export const translations = {
     pasoTresDesc: 'Detailed and transparent',
     pasoCuatro: 'Printing',
     pasoCuatroDesc: 'Professional and precise',
+
+    // Hero Slider
+    heroSlide1Title: 'Industrial Power in Your Hands',
+    heroSlide1Desc: 'Our state-of-the-art printers guarantee engineering-grade results for your most demanding projects.',
+    heroSlide2Title: 'From Concept to Lightning Prototype',
+    heroSlide2Desc: 'Accelerate your design cycle with high-fidelity physical models. Visualize and test your ideas in record time.',
+    heroSlide3Title: 'Materials that Break Limits',
+    heroSlide3Desc: 'From ultra-detailed resins to reinforced filaments. We choose the exact composition for every physical application.',
 
     // Material Details
     impresionPLA: 'PLA / PLA+ Printing',
