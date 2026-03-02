@@ -11,8 +11,12 @@ import ChatWidget from '../components/ChatWidget';
 import hero1 from '../assets/hero-1.png';
 import hero2 from '../assets/hero-2.png';
 import hero3 from '../assets/hero-3.png';
+import collaboratorImg from '../assets/collaborator.png';
+import teamBg from '../assets/hero-team-bg.png';
+import collaboratorFinalHD from '../assets/collaborator-final-hd.png';
+import heroDesigns from '../assets/hero-designs.png';
 
-export default function MainMenu({ onNavigate }) {
+export default function MainMenu({ onNavigate, navigationData, setNavigationData }) {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const { language } = useLanguage();
@@ -39,6 +43,21 @@ export default function MainMenu({ onNavigate }) {
       description: t.heroSlide3Desc,
       image: hero3,
       tag: 'Materiales Premium'
+    },
+    {
+      id: 3,
+      title: t.heroSlideTeamTitle,
+      description: t.heroSlideTeamDesc,
+      tag: t.expertosArea,
+      isCollaborator: true,
+      image: collaboratorFinalHD
+    },
+    {
+      id: 4,
+      title: t.heroSlideDesignsTitle,
+      description: t.heroSlideDesignsDesc,
+      image: heroDesigns,
+      tag: 'Diseños de Clientes'
     }
   ];
 
@@ -144,6 +163,34 @@ export default function MainMenu({ onNavigate }) {
     { num: '4', title: t.pasoCuatro, desc: t.pasoCuatroDesc }
   ];
 
+  // Manejar navegación desde el footer o externos
+  useEffect(() => {
+    if (navigationData && navigationData.scrollTo === 'materials') {
+      const section = document.getElementById('materials-section');
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      if (navigationData.material) {
+        const materialToSelect = materials.find(m => 
+          m.name.toLowerCase().includes(navigationData.material.toLowerCase()) || 
+          m.details.title.toLowerCase().includes(navigationData.material.toLowerCase())
+        );
+        if (materialToSelect) {
+          // Un pequeño delay para que el scroll empiece antes de abrir el modal
+          setTimeout(() => {
+            setSelectedMaterial(materialToSelect);
+          }, 100);
+        }
+      }
+      
+      // Limpiar data después de usarla para no repetir el efecto
+      if (setNavigationData) {
+        setNavigationData(null);
+      }
+    }
+  }, [navigationData, setNavigationData, materials]);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header onNavigate={onNavigate} currentPage="mainmenu" />
@@ -161,7 +208,7 @@ export default function MainMenu({ onNavigate }) {
             <img
               src={slide.image}
               alt={slide.title}
-              className="w-full h-full object-cover object-center scale-105"
+              className={`w-full h-full object-cover scale-105 ${slide.isCollaborator ? '' : 'object-center'}`}
             />
           </div>
         ))}
@@ -188,7 +235,7 @@ export default function MainMenu({ onNavigate }) {
             </div>
 
             <button
-              onClick={() => onNavigate('upload')}
+              onClick={() => onNavigate('designs')}
               className="group inline-flex items-center gap-4 px-10 py-4 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black uppercase tracking-widest text-sm transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(14,165,233,0.3)]"
             >
               {t.comenzar} <FiChevronRight size={22} className="group-hover:translate-x-1 transition-transform" />
@@ -240,7 +287,7 @@ export default function MainMenu({ onNavigate }) {
       </section>
 
       {/* Materials Section */}
-      <section className="py-20 px-6 bg-slate-50">
+      <section id="materials-section" className="py-20 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4 text-gray-900">{t.materialesDisponibles}</h2>
           <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">{t.detallesMateriales}</p>
@@ -354,7 +401,7 @@ export default function MainMenu({ onNavigate }) {
         </div>
       </section>
 
-      <Footer />
+      <Footer onNavigate={onNavigate} />
       <ChatWidget />
     </div>
   );

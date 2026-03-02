@@ -146,7 +146,7 @@ export default function ChatWidget() {
       {/* Chat Button Flotante */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all z-40 hover:scale-110"
+        className="fixed bottom-12 right-6 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all z-40 hover:scale-110"
         title="Asistente IA"
       >
         {isOpen ? <LuX size={24} /> : <LuMessageCircle size={24} />}
@@ -154,7 +154,7 @@ export default function ChatWidget() {
 
       {/* Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 bg-white rounded-2xl shadow-2xl flex flex-col h-96 z-50 animate-fade-in border border-gray-100">
+        <div className="fixed bottom-28 right-6 w-96 bg-white rounded-2xl shadow-2xl flex flex-col h-96 z-50 animate-fade-in border border-gray-100">
           {/* Header */}
           <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-t-2xl">
             <h3 className="font-semibold">Asistente IA</h3>

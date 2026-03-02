@@ -8,9 +8,11 @@ import Designs from './pages/Designs';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentPage, setCurrentPage] = useState('auth');
+  const [navigationData, setNavigationData] = useState(null);
 
-  const handleNavigate = (page) => {
-    if (page === 'upload' && !isAuthenticated) {
+  const handleNavigate = (page, data = null) => {
+    setNavigationData(data);
+    if ((page === 'upload' || page === 'designs') && !isAuthenticated) {
       setCurrentPage('auth');
     } else {
       setCurrentPage(page);
@@ -19,6 +21,7 @@ function App() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    setNavigationData(null);
     setCurrentPage('mainmenu');
   };
 
@@ -26,9 +29,9 @@ function App() {
     <LanguageProvider>
       <div className="App">
         {currentPage === 'auth' && <Auth onLogin={handleLogin} />}
-        {currentPage === 'mainmenu' && <MainMenu onNavigate={handleNavigate} />}
+        {currentPage === 'mainmenu' && <MainMenu onNavigate={handleNavigate} navigationData={navigationData} setNavigationData={setNavigationData} />}
         {currentPage === 'upload' && isAuthenticated && <Upload onNavigate={handleNavigate} />}
-        {currentPage === 'designs' && isAuthenticated && <Designs onNavigate={handleNavigate} />}
+        {currentPage === 'designs' && <Designs onNavigate={handleNavigate} />}
       </div>
     </LanguageProvider>
   );
