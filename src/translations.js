@@ -69,7 +69,7 @@ export const translations = {
     heroSlide2Desc: 'Acelera tu ciclo de diseño con maquetas físicas de alta fidelidad. Visualiza y prueba tus ideas en tiempo récord.',
     heroSlide3Title: 'Materiales que Rompen Límites',
     heroSlide3Desc: 'Desde resinas ultra-detalladas hasta filamentos reforzados. Elegimos la composición exacta para cada aplicación física.',
-    heroSlideTeamTitle: 'Tu Visión, Nuestra Pericia',
+    heroSlideTeamTitle: 'Donde la tecnología se encuentra con la imaginación',
     heroSlideTeamDesc: 'Donde la tecnología se encuentra con la imaginación',
     expertosArea: 'Expertos en el Área',
     heroSlideDesignsTitle: 'Explora Diseños de Nuestros Clientes',

@@ -1,18 +1,28 @@
 import { useState, useRef } from 'react';
-import { LuCamera, LuX, LuLogOut, LuUser } from 'react-icons/lu';
+import { LuCamera, LuX, LuLogOut } from 'react-icons/lu';
 import api from '../api/axios';
 
 export default function UserProfileAvatar() {
-  const [avatar, setAvatar] = useState('https://i.pravatar.cc/32');
-  const [showModal, setShowModal] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState('');
-  const fileInputRef = useRef(null);
-
+  // 1. Obtenemos el usuario del localStorage
   const user = (() => {
     try { return JSON.parse(localStorage.getItem('user')) || null; }
     catch { return null; }
   })();
+
+  // Helper para construir la URL correcta (local o externa)
+  const getAvatarUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `http://127.0.0.1:8000${path}`; // URL de tu backend local
+  };
+
+  // 2. Inicializamos el estado con la foto real de la base de datos
+  const [avatar, setAvatar] = useState(getAvatarUrl(user?.avatar));
+  const [showModal, setShowModal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false); // Para UX (saber que está cargando)
+  const fileInputRef = useRef(null);
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout'); } catch {}
@@ -21,23 +31,48 @@ export default function UserProfileAvatar() {
     window.location.reload();
   };
 
-  const handleFileUpload = e => {
+  // 3. Función maestra que envía la imagen a Laravel
+  const updateAvatarOnServer = async (payload, isFile = true) => {
+    setIsUploading(true);
+    try {
+      let response;
+      if (isFile) {
+        const formData = new FormData();
+        formData.append('avatar_file', payload);
+        response = await api.post('/auth/avatar', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        response = await api.post('/auth/avatar', { avatar_url: payload });
+      }
+
+      // Actualizamos localStorage con los nuevos datos del usuario
+      const updatedUser = response.data.user;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      // Actualizamos la burbuja visual
+      setAvatar(getAvatarUrl(updatedUser.avatar));
+      setShowModal(false);
+      alert('¡Foto de perfil actualizada con éxito!');
+    } catch (error) {
+      console.error("Error al actualizar avatar:", error);
+      alert('Hubo un error al guardar la foto en el servidor.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = event => {
-        setAvatar(event.target?.result);
-        setShowModal(false);
-      };
-      reader.readAsDataURL(file);
+      updateAvatarOnServer(file, true);
     }
   };
 
   const handleUrlSubmit = () => {
     if (photoUrl.trim()) {
-      setAvatar(photoUrl);
+      updateAvatarOnServer(photoUrl.trim(), false);
       setPhotoUrl('');
-      setShowModal(false);
     }
   };
 
@@ -54,7 +89,7 @@ export default function UserProfileAvatar() {
           className="relative w-9 h-9 rounded-full overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center"
           title={user?.name || 'Usuario'}
         >
-          {avatar !== 'https://i.pravatar.cc/32' ? (
+          {avatar ? (
             <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
           ) : (
             <span className="text-white text-xs font-black">{initials}</span>
@@ -67,8 +102,12 @@ export default function UserProfileAvatar() {
             {/* Info del usuario */}
             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
-                  <span className="text-white text-xs font-black">{initials}</span>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0 overflow-hidden">
+                  {avatar ? (
+                     <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                     <span className="text-white text-xs font-black">{initials}</span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{user?.name || 'Usuario'}</p>
@@ -108,14 +147,14 @@ export default function UserProfileAvatar() {
           <div className="bg-white rounded-2xl p-6 w-96 shadow-2xl animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Cambiar foto de perfil</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">
+              <button disabled={isUploading} onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">
                 <LuX size={20} />
               </button>
             </div>
 
             <div className="mb-4 flex justify-center">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden border-2 border-gray-200">
-                {avatar !== 'https://i.pravatar.cc/32'
+                {avatar
                   ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
                   : <span className="text-white text-2xl font-black">{initials}</span>
                 }
@@ -125,10 +164,11 @@ export default function UserProfileAvatar() {
             <div className="mb-4">
               <label className="text-sm font-medium text-gray-700 mb-2 block">Sube una imagen</label>
               <button
+                disabled={isUploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-sm text-gray-600"
+                className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-sm text-gray-600 disabled:opacity-50"
               >
-                Seleccionar archivo
+                {isUploading ? 'Subiendo...' : 'Seleccionar archivo'}
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
             </div>
@@ -142,17 +182,19 @@ export default function UserProfileAvatar() {
                   value={photoUrl}
                   onChange={e => setPhotoUrl(e.target.value)}
                   onKeyPress={e => e.key === 'Enter' && handleUrlSubmit()}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  disabled={isUploading}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                 />
-                <button onClick={handleUrlSubmit} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm">
-                  Usar
+                <button disabled={isUploading} onClick={handleUrlSubmit} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm disabled:opacity-50">
+                  {isUploading ? '...' : 'Usar'}
                 </button>
               </div>
             </div>
 
             <button
+              disabled={isUploading}
               onClick={() => setShowModal(false)}
-              className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              className="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm disabled:opacity-50"
             >
               Cancelar
             </button>
