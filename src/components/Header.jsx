@@ -9,6 +9,11 @@ export default function Header({ onNavigate, currentPage }) {
   const { language, setLanguage } = useLanguage();
   const t = translations[language];
 
+  // 1. Verificamos silenciosamente si el usuario es el administrador
+  const userString = localStorage.getItem('user');
+  const user = userString ? JSON.parse(userString) : null;
+  const isAdmin = user?.role === 'admin';
+
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -46,6 +51,21 @@ export default function Header({ onNavigate, currentPage }) {
           >
             {t.disenos}
           </button>
+
+          {/* 2. LA PUERTA SECRETA: Solo aparece para el admin */}
+          {isAdmin && (
+            <button
+              onClick={() => onNavigate?.('admin')}
+              className={`text-sm font-medium  transition-all ${
+                currentPage === 'admin' 
+                ? 'text-blue-600' 
+                : 'text-gray-700 hover:text-gray-900'
+              }`}
+            >
+              Panel Admin
+            </button>
+          )}
+
           <div className="h-6 w-px bg-gray-200"></div>
           <OrderHistory />
 

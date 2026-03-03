@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { translations } from '../translations';
+import api from '../api/axios';
 
 export default function Auth({ onLogin }) {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -42,9 +43,8 @@ export default function Auth({ onLogin }) {
       </div>
 
       <div className="w-full max-w-6xl relative z-10">
-        {/* Contenedor Principal */}
         <div className="rounded-3xl overflow-hidden shadow-2xl h-[26rem] flex relative">
-          
+
           {/* LADO IZQUIERDO - Panel Blanco */}
           <div className="w-1/2 bg-white flex flex-col items-center justify-center p-8">
             {!isSignUp ? (
@@ -52,28 +52,29 @@ export default function Auth({ onLogin }) {
                 <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">{t.iniciarSesion}</h3>
                 <p className="text-gray-500 text-sm mb-6">{t.iniciarSesionDesc}</p>
 
-                {/* Social Icons */}
                 <div className="flex gap-4 mb-6">
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    f
-                  </button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    🔗
-                  </button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    G
-                  </button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    in
-                  </button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">f</button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">🔗</button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">G</button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">in</button>
                 </div>
 
                 {/* Formulario Sign In */}
                 <form
                   className="w-full space-y-3 max-h-56 overflow-y-auto pr-6"
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    if (onLogin) onLogin();
+                    const inputs   = e.target.querySelectorAll('input');
+                    const email    = inputs[0].value;
+                    const password = inputs[1].value;
+                    try {
+                      const { data } = await api.post('/auth/login', { email, password });
+                      localStorage.setItem('token', data.token);
+                      localStorage.setItem('user', JSON.stringify(data.user));
+                      if (onLogin) onLogin(data.user);
+                    } catch (err) {
+                      alert(err.response?.data?.message || 'Credenciales incorrectas.');
+                    }
                   }}
                 >
                   <input
@@ -106,28 +107,32 @@ export default function Auth({ onLogin }) {
                 <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">{t.crearCuenta}</h3>
                 <p className="text-gray-500 text-sm mb-6">{t.crearCuentaDesc}</p>
 
-                {/* Social Icons */}
                 <div className="flex gap-4 mb-6">
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    f
-                  </button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    🔗
-                  </button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    G
-                  </button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">
-                    in
-                  </button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">f</button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">🔗</button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">G</button>
+                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">in</button>
                 </div>
 
                 {/* Formulario Sign Up */}
                 <form
                   className="w-full space-y-3 max-h-56 overflow-y-auto pr-6"
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    if (onLogin) onLogin();
+                    const inputs            = e.target.querySelectorAll('input');
+                    const name              = inputs[0].value;
+                    const email             = inputs[1].value;
+                    const password          = inputs[2].value;
+                    const password_confirmation = inputs[3].value;
+                    try {
+                      const { data } = await api.post('/auth/register', { name, email, password, password_confirmation });
+                      localStorage.setItem('token', data.token);
+                      localStorage.setItem('user', JSON.stringify(data.user));
+                      if (onLogin) onLogin(data.user);
+                    } catch (err) {
+                      const errors = err.response?.data?.errors;
+                      alert(errors ? Object.values(errors).flat().join('\n') : 'Error al registrarse.');
+                    }
                   }}
                 >
                   <input
@@ -167,8 +172,7 @@ export default function Auth({ onLogin }) {
 
           {/* LADO DERECHO - Panel Azul/Cyan */}
           <div className="w-1/2 bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-700 relative flex items-center justify-center overflow-hidden">
-            
-            {/* Panel 1: Welcome (Sign In mode) */}
+
             <div
               style={{
                 position: 'absolute',
@@ -179,9 +183,7 @@ export default function Auth({ onLogin }) {
               className="flex flex-col items-center justify-center p-8 text-white w-full h-full"
             >
               <h2 className="text-4xl font-bold mb-4 text-center">{t.bienvenido}</h2>
-              <p className="text-center text-blue-100 mb-8 text-lg">
-                {t.bienvenidoDesc}
-              </p>
+              <p className="text-center text-blue-100 mb-8 text-lg">{t.bienvenidoDesc}</p>
               <button
                 onClick={() => setIsSignUp(true)}
                 className="px-8 py-2 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
@@ -190,7 +192,6 @@ export default function Auth({ onLogin }) {
               </button>
             </div>
 
-            {/* Panel 2: Welcome Back (Sign Up mode) */}
             <div
               style={{
                 position: 'absolute',
@@ -201,9 +202,7 @@ export default function Auth({ onLogin }) {
               className="flex flex-col items-center justify-center p-8 text-white w-full h-full"
             >
               <h2 className="text-4xl font-bold mb-4 text-center">{t.bienvenidoVuelta}</h2>
-              <p className="text-center text-blue-100 mb-8 text-lg">
-                {t.conCuenta}
-              </p>
+              <p className="text-center text-blue-100 mb-8 text-lg">{t.conCuenta}</p>
               <button
                 onClick={() => setIsSignUp(false)}
                 className="px-8 py-2 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-blue-600 transition-all duration-300"

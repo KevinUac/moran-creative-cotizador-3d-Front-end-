@@ -70,7 +70,6 @@ export default function MainMenu({ onNavigate, navigationData, setNavigationData
   }, []);
 
   const features = [
-    // ... (resto del código igual hasta el return)
     {
       icon: <FiZap size={24} />,
       title: t.rapido,
