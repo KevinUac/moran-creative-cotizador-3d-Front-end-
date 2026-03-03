@@ -122,6 +122,20 @@ export default function Upload({ onNavigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      const user = JSON.parse(userString);
+      setFormData(prev => ({
+        ...prev,
+        nombre: user.name || '',
+        email: user.email || '',
+        telefono: user.phone || '',
+        direccion: user.address || ''
+      }));
+    }
+  }, []);
+
   const isContactComplete = () => (
     formData.nombre.trim().length > 0 &&
     formData.email.trim().length > 0 &&
@@ -250,6 +264,27 @@ export default function Upload({ onNavigate }) {
     if (formErrors[field]) setFormErrors(prev => ({ ...prev, [field]: null }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      nombre: '',
+      email: '',
+      telefono: '',
+      direccion: '',
+      material: 'PLA',
+      color: 'Negro',
+      cantidad: 1,
+      notas: ''
+    });
+    setUploadedFile(null);
+    setFormErrors({});
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccess(false);
+    resetForm();
+  };
+
   const handleSubmit = async () => {
     const errors = {};
 
@@ -344,11 +379,6 @@ export default function Upload({ onNavigate }) {
             </div>
             <h1 className="text-5xl font-black mb-3 text-gray-900 tracking-tight flex items-center justify-center gap-3">
               Nuevo <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Proyecto</span>
-              {(uploadedFile && isContactComplete()) && (
-                <div className="flex-shrink-0 bg-green-500 text-white rounded-full p-1 animate-fadeIn shadow-lg">
-                  <LuCheck size={28} />
-                </div>
-              )}
             </h1>
             <div className="h-1 w-20 bg-blue-600 mx-auto mb-4 rounded-full" />
             <p className="text-gray-500 text-lg max-w-lg mx-auto leading-relaxed">
@@ -428,15 +458,15 @@ export default function Upload({ onNavigate }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
               <div className="mb-4">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Nombre completo</label>
-                <input type="text" value={formData.nombre} onChange={(e) => handleInputChange('nombre', e.target.value)}
-                  className={`w-full mt-1.5 px-4 py-3 bg-white rounded-xl border focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${formErrors.nombre ? 'border-red-500' : 'border-gray-200 hover:border-blue-400 shadow-sm'}`}
+                <input type="text" value={formData.nombre} readOnly={true}
+                  className={`w-full mt-1.5 px-4 py-3 bg-gray-100 cursor-not-allowed rounded-xl border border-gray-200 text-gray-500 focus:outline-none transition-all shadow-sm`}
                   placeholder="Juan Pérez" />
                 {formErrors.nombre && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{formErrors.nombre}</p>}
               </div>
               <div className="mb-4">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Correo electrónico</label>
-                <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`w-full mt-1.5 px-4 py-3 bg-white rounded-xl border focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${formErrors.email ? 'border-red-500' : 'border-gray-200 hover:border-blue-400 shadow-sm'}`}
+                <input type="email" value={formData.email} readOnly={true}
+                  className={`w-full mt-1.5 px-4 py-3 bg-gray-100 cursor-not-allowed rounded-xl border border-gray-200 text-gray-500 focus:outline-none transition-all shadow-sm`}
                   placeholder="correo@ejemplo.com" />
                 {formErrors.email && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{formErrors.email}</p>}
               </div>
@@ -534,16 +564,37 @@ export default function Upload({ onNavigate }) {
         <div className="mb-12">
           <div className="flex flex-col md:flex-row gap-6">
             {[
-              { icon: <LuLayers size={20} />, color: 'blue', title: 'Revisión Técnica', desc: 'Análisis de geometría y viabilidad en menos de 24h.' },
-              { icon: <LuClipboardList size={20} />, color: 'purple', title: 'Cálculo Preciso', desc: 'Determinación exacta de materiales y tiempo de impresión.' },
-              { icon: <LuCheck size={20} />, color: 'green', title: 'Cotización Final', desc: 'Envío de propuesta formal detallada a tu correo.' },
+              {
+                icon: <LuLayers size={20} />,
+                title: 'Revisión Técnica',
+                desc: 'Análisis de geometría y viabilidad en menos de 24h.',
+                bgColor: 'bg-blue-50',
+                textColor: 'text-blue-600',
+                hoverBg: 'group-hover:bg-blue-600'
+              },
+              {
+                icon: <LuClipboardList size={20} />,
+                title: 'Cálculo Preciso',
+                desc: 'Determinación exacta de materiales y tiempo de impresión.',
+                bgColor: 'bg-purple-50',
+                textColor: 'text-purple-600',
+                hoverBg: 'group-hover:bg-purple-600'
+              },
+              {
+                icon: <LuCheck size={20} />,
+                title: 'Cotización Final',
+                desc: 'Envío de propuesta formal detallada a tu correo.',
+                bgColor: 'bg-green-50',
+                textColor: 'text-green-600',
+                hoverBg: 'group-hover:bg-green-600'
+              },
             ].map((item) => (
-              <div key={item.title} className="flex-1 p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
-                <div className={`w-10 h-10 rounded-xl bg-${item.color}-50 text-${item.color}-600 flex items-center justify-center mb-4 group-hover:bg-${item.color}-600 group-hover:text-white transition-colors`}>
+              <div key={item.title} className="flex-1 p-8 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-default">
+                <div className={`w-12 h-12 rounded-xl ${item.bgColor} ${item.textColor} flex items-center justify-center mb-6 ${item.hoverBg} group-hover:text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}>
                   {item.icon}
                 </div>
-                <h5 className="font-black text-gray-900 mb-1">{item.title}</h5>
-                <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                <h5 className="text-lg font-black text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">{item.title}</h5>
+                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -560,9 +611,9 @@ export default function Upload({ onNavigate }) {
 
       {/* Success Modal */}
       {showSuccess && (
-        <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4" onClick={() => setShowSuccess(false)}>
+        <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50 p-4" onClick={handleCloseSuccess}>
           <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full text-center relative animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowSuccess(false)}
+            <button onClick={handleCloseSuccess}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 p-2 rounded-full">
               <FiX size={20} />
             </button>

@@ -29,7 +29,7 @@ export default function Footer({ onNavigate }) {
             </div>
             <p className="text-sm text-gray-400 max-w-xs">Transformando ideas en realidad a través de la impresión 3D profesional.</p>
           </div>
-          
+
           {/* Services */}
           <div className="col-span-6 md:col-span-3">
             <h4 className="text-white font-semibold mb-3">Servicios</h4>
@@ -40,19 +40,20 @@ export default function Footer({ onNavigate }) {
               <li><button onClick={(e) => onNavigate('upload')} className="text-gray-400 hover:text-white transition bg-transparent border-none p-0">Diseño personalizado</button></li>
             </ul>
           </div>
-          
+
           {/* Contact */}
           <div className="col-span-6 md:col-span-5">
             <h4 className="text-white font-semibold mb-3">Contacto</h4>
             <ul className="space-y-2 text-sm">
               <li className="text-gray-400">+52 951 297 4496</li>
               <li className="text-gray-400">+52 981 399 1081</li>
-              <li className="text-gray-400">info@morancreative.com</li>
+              <li className="text-gray-400">+52 981 384 2650</li>
+              <li className="text-gray-400">moranprint.mx@gmail.com</li>
               <li className="text-gray-400">Campeche, México</li>
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t border-gray-800 pt-6 flex items-center justify-between">
           <p className="text-sm text-gray-400">© 2026 Moran Creative. Todos los derechos reservados.</p>
           <div className="flex gap-4">

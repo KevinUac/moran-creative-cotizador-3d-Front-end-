@@ -1,11 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { translations } from '../translations';
 import api from '../api/axios';
+import moranLogo from '../assets/Moran Creative Logo.png';
+import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiPhone, FiMapPin, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 
 export default function Auth({ onLogin }) {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [regSuccess, setRegSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { language, setLanguage } = useLanguage();
+
+  // Lock body scroll when on Auth page
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   const handleEnterFocus = (e) => {
     if (e.key !== 'Enter') return;
@@ -18,222 +31,287 @@ export default function Auth({ onLogin }) {
     if (idx > -1 && idx < focusables.length - 1) {
       const next = focusables[idx + 1];
       next.focus();
-      if (next.tagName.toLowerCase() === 'button') next.click();
+      if (next.tagName.toLowerCase() === 'button' && next.type === 'submit') next.click();
     }
   };
 
   const t = translations[language];
 
+  const handleAction = async (e) => {
+    e.preventDefault();
+    setRegSuccess(false);
+    setIsLoading(true);
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    try {
+      if (isSignUp) {
+        await api.post('/auth/register', {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          password: data.password,
+          password_confirmation: data.password_confirmation
+        });
+        setRegSuccess(true);
+        setIsSignUp(false);
+      } else {
+        const res = await api.post('/auth/login', {
+          email: data.email,
+          password: data.password
+        });
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        if (onLogin) onLogin(res.data.user);
+      }
+    } catch (err) {
+      const errors = err.response?.data?.errors;
+      alert(errors ? Object.values(errors).flat().join('\n') : (err.response?.data?.message || 'Error en la autenticación.'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Blobs decorativos */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-10 right-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute -left-4 top-20 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 right-1/3 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-      </div>
+    <div className="h-screen w-full bg-[#0a0a0a] flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans">
 
-      {/* Particle background */}
-      <div className="particles" aria-hidden>
-        <div className="particle p-sm delay-1" style={{ top: '8%', left: '12%' }} />
-        <div className="particle p-md delay-2 alt" style={{ top: '22%', left: '70%' }} />
-        <div className="particle p-lg delay-3" style={{ top: '40%', left: '28%' }} />
-        <div className="particle p-sm delay-4 alt" style={{ top: '62%', left: '54%' }} />
-        <div className="particle p-xl delay-5" style={{ top: '78%', left: '16%' }} />
-      </div>
+      {/* Background Layer */}
+      <div className="absolute inset-0 bg-[#0a0a0a]"></div>
+      <div className="absolute inset-0 bg-noise opacity-[0.03]"></div>
 
-      <div className="w-full max-w-6xl relative z-10">
-        <div className="rounded-3xl overflow-hidden shadow-2xl h-[26rem] flex relative">
+      {/* Centered Pro Card */}
+      <div className="w-full max-w-5xl bg-[#121212] rounded-[3rem] shadow-[0_50px_120px_rgba(0,0,0,1)] border border-white/5 flex flex-col md:flex-row overflow-hidden relative z-10 animate-fade-up">
 
-          {/* LADO IZQUIERDO - Panel Blanco */}
-          <div className="w-1/2 bg-white flex flex-col items-center justify-center p-8">
-            {!isSignUp ? (
-              <>
-                <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">{t.iniciarSesion}</h3>
-                <p className="text-gray-500 text-sm mb-6">{t.iniciarSesionDesc}</p>
+        {/* Top Window Decoration */}
+        <div className="absolute top-8 left-10 flex gap-2 z-40 lg:flex hidden">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-green-500/20"></div>
+        </div>
 
-                <div className="flex gap-4 mb-6">
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">f</button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">🔗</button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">G</button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">in</button>
-                </div>
+        {/* --- LEFT: FORM SECTION --- */}
+        <div className="flex-[1.1] flex flex-col h-[650px] md:h-[min(750px,90vh)] relative bg-[#121212]">
 
-                {/* Formulario Sign In */}
-                <form
-                  className="w-full space-y-3 max-h-56 overflow-y-auto pr-6"
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const inputs   = e.target.querySelectorAll('input');
-                    const email    = inputs[0].value;
-                    const password = inputs[1].value;
-                    try {
-                      const { data } = await api.post('/auth/login', { email, password });
-                      localStorage.setItem('token', data.token);
-                      localStorage.setItem('user', JSON.stringify(data.user));
-                      if (onLogin) onLogin(data.user);
-                    } catch (err) {
-                      alert(err.response?.data?.message || 'Credenciales incorrectas.');
-                    }
-                  }}
+          {/* Header (Branding + Lang selector - fixed at top) */}
+          <div className="px-10 pt-10 pb-4 flex justify-between items-center bg-[#121212] z-40">
+            <div className="flex items-center gap-3 animate-fade-up">
+              {/* Moran Creative Logo */}
+              <img src={moranLogo} alt="Moran Creative" className="h-10 w-auto" />
+
+              {/* Maker Lab Text Branding (Matching Main Page) */}
+              <span className="text-xl font-black tracking-tighter text-white leading-none uppercase">
+                MAKER <span className="text-blue-500">LAB</span>
+              </span>
+            </div>
+
+            <div className="flex bg-white/5 rounded-full p-1 border border-white/5">
+              {['ES', 'EN'].map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`px-4 py-1.5 rounded-full text-[9px] font-black tracking-widest transition-all ${language === lang ? 'bg-white/10 text-white shadow-sm' : 'text-white/20 hover:text-white/40'
+                    }`}
                 >
-                  <input
-                    type="email"
-                    placeholder={t.email}
-                    onKeyDown={handleEnterFocus}
-                    className="w-full px-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150"
-                  />
-                  <input
-                    type="password"
-                    placeholder={t.contrasena}
-                    onKeyDown={handleEnterFocus}
-                    className="w-full px-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150"
-                  />
-                  <div className="flex justify-end">
-                    <a href="#" className="text-blue-600 text-sm font-semibold hover:text-cyan-600 transition">
-                      {t.olvidasteContrasena}
-                    </a>
+                  {lang}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* INTERNAL FORM SCROLL */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-10 md:px-16 pb-12">
+            <div className="mt-4 mb-10">
+              <h1 className="text-4xl font-black text-white tracking-tighter leading-none animate-fade-up delay-100">
+                {isSignUp ? t.crearCuenta : t.iniciarSesion}
+              </h1>
+              <p className="text-white/20 text-sm font-medium mt-3 animate-fade-up delay-200">
+                {isSignUp ? t.crearCuentaDesc : t.bienvenidoDesc}
+              </p>
+
+              {regSuccess && !isSignUp && (
+                <div className="mt-8 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center gap-3 text-green-400 text-xs font-bold animate-fadeIn">
+                  <FiCheckCircle size={18} />
+                  {language === 'ES' ? '¡Registro exitoso! Iniciemos sesión.' : 'Success! Now sign in.'}
+                </div>
+              )}
+            </div>
+
+            <form className="space-y-7" onSubmit={handleAction}>
+              {isSignUp && (
+                <div className="animate-fade-up delay-300">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3 block">{t.nombreCompleto}</label>
+                  <div className="relative group">
+                    <FiUser className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-blue-500 transition-colors" />
+                    <input
+                      name="name" type="text" required placeholder="Juan Pérez" onKeyDown={handleEnterFocus}
+                      className="w-full bg-[#181818] border border-white/5 pl-14 pr-6 py-5 rounded-2xl text-white focus:outline-none focus:border-blue-500/40 transition-all placeholder:text-white/5"
+                    />
                   </div>
-                  <button
-                    type="submit"
-                    className="w-full px-8 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-lg transition-all duration-300"
-                  >
-                    {t.iniciarSesionBtn}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">{t.crearCuenta}</h3>
-                <p className="text-gray-500 text-sm mb-6">{t.crearCuentaDesc}</p>
-
-                <div className="flex gap-4 mb-6">
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">f</button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">🔗</button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">G</button>
-                  <button className="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-full flex items-center justify-center transition-colors font-bold text-blue-600">in</button>
                 </div>
+              )}
 
-                {/* Formulario Sign Up */}
-                <form
-                  className="w-full space-y-3 max-h-56 overflow-y-auto pr-6"
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const inputs            = e.target.querySelectorAll('input');
-                    const name              = inputs[0].value;
-                    const email             = inputs[1].value;
-                    const password          = inputs[2].value;
-                    const password_confirmation = inputs[3].value;
-                    try {
-                      const { data } = await api.post('/auth/register', { name, email, password, password_confirmation });
-                      localStorage.setItem('token', data.token);
-                      localStorage.setItem('user', JSON.stringify(data.user));
-                      if (onLogin) onLogin(data.user);
-                    } catch (err) {
-                      const errors = err.response?.data?.errors;
-                      alert(errors ? Object.values(errors).flat().join('\n') : 'Error al registrarse.');
-                    }
-                  }}
-                >
+              <div className="animate-fade-up delay-400">
+                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3 block">{t.email}</label>
+                <div className="relative group">
+                  <FiMail className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-blue-500 transition-colors" />
                   <input
-                    type="text"
-                    placeholder={t.nombreCompleto}
-                    onKeyDown={handleEnterFocus}
-                    className="w-full px-4 py-2 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150"
+                    name="email" type="email" required placeholder="tu@correo.com" onKeyDown={handleEnterFocus}
+                    className="w-full bg-[#181818] border border-white/5 pl-14 pr-6 py-5 rounded-2xl text-white focus:outline-none focus:border-blue-500/40 transition-all placeholder:text-white/5"
                   />
+                </div>
+              </div>
+
+              {isSignUp && (
+                <div className="space-y-7 animate-fade-up delay-500">
+                  <div>
+                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3 block">{t.telefono}</label>
+                    <div className="relative group">
+                      <FiPhone className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-blue-500 transition-colors" />
+                      <input
+                        name="phone" type="text" required placeholder="981 123 4567" onKeyDown={handleEnterFocus}
+                        className="w-full bg-[#181818] border border-white/5 pl-14 pr-6 py-5 rounded-2xl text-white focus:outline-none focus:border-blue-500/40 transition-all placeholder:text-white/5"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3 block">{t.direccion}</label>
+                    <div className="relative group">
+                      <FiMapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-blue-500 transition-colors" />
+                      <input
+                        name="address" type="text" required placeholder="Calle 123, Col. Centro..." onKeyDown={handleEnterFocus}
+                        className="w-full bg-[#181818] border border-white/5 pl-14 pr-6 py-5 rounded-2xl text-white focus:outline-none focus:border-blue-500/40 transition-all placeholder:text-white/5"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="animate-fade-up delay-600">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">{t.contrasena}</label>
+                  {!isSignUp && (
+                    <button type="button" className="text-[9px] font-bold text-white/20 hover:text-blue-500 transition-colors uppercase tracking-widest leading-none">
+                      {language === 'ES' ? '¿Olvidaste?' : 'Forgot?'}
+                    </button>
+                  )}
+                </div>
+                <div className="relative group">
+                  <FiLock className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-blue-500 transition-colors" />
                   <input
-                    type="email"
-                    placeholder={t.email}
-                    onKeyDown={handleEnterFocus}
-                    className="w-full px-4 py-2 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150"
-                  />
-                  <input
-                    type="password"
-                    placeholder={t.contrasena}
-                    onKeyDown={handleEnterFocus}
-                    className="w-full px-4 py-2 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150"
-                  />
-                  <input
-                    type="password"
-                    placeholder={t.confirmarContrasena}
-                    onKeyDown={handleEnterFocus}
-                    className="w-full px-4 py-2 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-150"
+                    name="password" type={showPassword ? "text" : "password"} required placeholder="••••••••" onKeyDown={handleEnterFocus}
+                    className="w-full bg-[#181818] border border-white/5 pl-14 pr-16 py-5 rounded-2xl text-white focus:outline-none focus:border-blue-500/40 transition-all placeholder:text-white/5"
                   />
                   <button
-                    type="submit"
-                    className="w-full px-8 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-lg transition-all duration-300"
+                    type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-white/10 hover:text-white transition-colors"
                   >
-                    {t.crearCuentaBtn}
+                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                   </button>
-                </form>
-              </>
-            )}
+                </div>
+              </div>
+
+              {isSignUp && (
+                <div className="animate-fade-up delay-700">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3 block">{t.confirmarContrasena}</label>
+                  <div className="relative group">
+                    <FiLock className="absolute left-6 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-blue-500 transition-colors" />
+                    <input
+                      name="password_confirmation" type={showPassword ? "text" : "password"} required placeholder="••••••••" onKeyDown={handleEnterFocus}
+                      className="w-full bg-[#181818] border border-white/5 pl-14 pr-6 py-5 rounded-2xl text-white focus:outline-none focus:border-blue-500/40 transition-all placeholder:text-white/5"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-8 flex flex-col gap-6 animate-fade-up delay-800">
+                <button
+                  type="submit" disabled={isLoading}
+                  className="w-full py-5 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] disabled:opacity-50 text-white font-black text-[11px] uppercase tracking-[0.4em] rounded-2xl transition-all shadow-2xl shadow-blue-900/10 flex items-center justify-center gap-3"
+                >
+                  {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <>{isSignUp ? t.crearCuentaBtn : t.iniciarSesionBtn} <FiArrowRight size={18} /></>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setIsSignUp(!isSignUp); setRegSuccess(false); }}
+                  className="w-full py-4 rounded-2xl border border-white/5 text-[10px] font-black text-white/30 hover:text-white hover:bg-white/5 transition-all uppercase tracking-widest"
+                >
+                  {isSignUp ? t.conCuenta : t.sinCuenta}
+                </button>
+              </div>
+            </form>
           </div>
 
-          {/* LADO DERECHO - Panel Azul/Cyan */}
-          <div className="w-1/2 bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-700 relative flex items-center justify-center overflow-hidden">
-
-            <div
-              style={{
-                position: 'absolute',
-                opacity: isSignUp ? 0 : 1,
-                transition: 'opacity 500ms ease-in-out',
-                pointerEvents: isSignUp ? 'none' : 'auto',
-              }}
-              className="flex flex-col items-center justify-center p-8 text-white w-full h-full"
-            >
-              <h2 className="text-4xl font-bold mb-4 text-center">{t.bienvenido}</h2>
-              <p className="text-center text-blue-100 mb-8 text-lg">{t.bienvenidoDesc}</p>
-              <button
-                onClick={() => setIsSignUp(true)}
-                className="px-8 py-2 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
-              >
-                {t.crearCuentaBtn}
-              </button>
-            </div>
-
-            <div
-              style={{
-                position: 'absolute',
-                opacity: isSignUp ? 1 : 0,
-                transition: 'opacity 500ms ease-in-out',
-                pointerEvents: isSignUp ? 'auto' : 'none',
-              }}
-              className="flex flex-col items-center justify-center p-8 text-white w-full h-full"
-            >
-              <h2 className="text-4xl font-bold mb-4 text-center">{t.bienvenidoVuelta}</h2>
-              <p className="text-center text-blue-100 mb-8 text-lg">{t.conCuenta}</p>
-              <button
-                onClick={() => setIsSignUp(false)}
-                className="px-8 py-2 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
-              >
-                {t.iniciarSesionBtn}
-              </button>
-            </div>
-          </div>
-
-          {/* Language selector */}
-          <div className="absolute bottom-6 right-6 z-30">
-            <label className="sr-only">Idioma / Language</label>
-            <select
-              aria-label="Select language"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="bg-white/20 text-white backdrop-blur-sm rounded-md px-4 py-2 text-sm border border-white/30 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all font-semibold cursor-pointer appearance-none"
-              style={{
-                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 0.5rem center',
-                backgroundSize: '1.5em 1.5em',
-                paddingRight: '2.5rem'
-              }}
-            >
-              <option value="ES" style={{ color: '#000' }}>ES</option>
-              <option value="EN" style={{ color: '#000' }}>EN</option>
-            </select>
+          {/* Fixed Footer */}
+          <div className="px-10 py-6 border-t border-white/5 text-center hidden md:block bg-[#121212] z-20">
+            <p className="text-[9px] text-white/10 font-bold uppercase tracking-[0.5em]">
+              © {new Date().getFullYear()} Moran Creative • Maker Lab
+            </p>
           </div>
         </div>
+
+        {/* --- RIGHT: 3D TECHNICAL ILLUSTRATION --- */}
+        <div className="hidden md:flex flex-1 bg-[#0a0a0a] relative flex-col items-center justify-center p-20 overflow-hidden border-l border-white/5 h-[min(750px,90vh)]">
+
+          {/* Subtle Grid */}
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '50px 50px' }}>
+          </div>
+
+          {/* Pulsing focal point */}
+          <div className="absolute w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] animate-pulse"></div>
+
+          {/* Animated 3D Cube (Technical) */}
+          <div className="perspective-1000 relative z-10 w-64 h-64 flex items-center justify-center scale-110">
+            <div className="w-32 h-32 relative animate-rotate-3d">
+              {/* Cube Faces */}
+              <div className="absolute inset-0 border-2 border-blue-500/20 bg-blue-500/5 translate-z-[64px]"></div>
+              <div className="absolute inset-0 border-2 border-blue-500/20 bg-blue-500/5 rotate-y-90 translate-z-[64px]"></div>
+              <div className="absolute inset-0 border-2 border-blue-500/20 bg-blue-500/5 rotate-y-180 translate-z-[64px]"></div>
+              <div className="absolute inset-0 border-2 border-blue-500/20 bg-blue-500/5 rotate-y-270 translate-z-[64px]"></div>
+              <div className="absolute inset-0 border-2 border-blue-500/20 bg-blue-500/5 rotate-x-90 translate-z-[64px]"></div>
+              <div className="absolute inset-0 border-2 border-blue-500/20 bg-blue-500/5 rotate-x-270 translate-z-[64px]"></div>
+            </div>
+
+            {/* Core light */}
+            <div className="absolute w-4 h-4 bg-blue-400 rounded-full blur-md opacity-50"></div>
+          </div>
+
+          <div className="absolute bottom-20 text-center opacity-20">
+            <p className="text-white text-[9px] font-black uppercase tracking-[0.8em]">Maker Lab Intelligence</p>
+            <div className="mt-4 h-px w-24 bg-gradient-to-r from-transparent via-white to-transparent mx-auto"></div>
+          </div>
+        </div>
+
       </div>
+
+      <style jsx>{`
+        @keyframes rotate-3d {
+          from { transform: rotateX(0deg) rotateY(0deg); }
+          to { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        .animate-rotate-3d {
+          animation: rotate-3d 40s infinite linear;
+          transform-style: preserve-3d;
+        }
+        .perspective-1000 { perspective: 1000px; }
+        .translate-z-\\[64px\\] { transform: translateZ(64px); }
+        .rotate-y-90  { transform: rotateY(90deg) translateZ(64px); }
+        .rotate-y-180 { transform: rotateY(180deg) translateZ(64px); }
+        .rotate-y-270 { transform: rotateY(270deg) translateZ(64px); }
+        .rotate-x-90  { transform: rotateX(90deg) translateZ(64px); }
+        .rotate-x-270 { transform: rotateX(-90deg) translateZ(64px); }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
+        
+        .bg-noise {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+      `}</style>
     </div>
   );
 }

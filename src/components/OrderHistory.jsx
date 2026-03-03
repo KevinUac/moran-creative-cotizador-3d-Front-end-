@@ -6,43 +6,47 @@ import { translations } from '../translations';
 import api from '../api/axios';
 
 const STATUS_TO_STEP = {
-  solicitado:   0,
-  cotizado:     1,
-  aceptado:     2,
+  solicitado: 0,
+  cotizado: 1,
+  aceptado: 2,
   en_produccion: 3,
-  listo:        4,
-  entregado:    5,
-  rechazado:    0,
+  listo: 4,
+  entregado: 5,
+  rechazado: 0,
 };
 
 const STATUS_STYLE = {
-  solicitado:    { bg: 'bg-yellow-50 text-yellow-600 border-yellow-100',   dot: 'bg-yellow-500' },
-  cotizado:      { bg: 'bg-yellow-50 text-yellow-600 border-yellow-100',   dot: 'bg-yellow-500' },
-  aceptado:      { bg: 'bg-blue-50 text-blue-600 border-blue-100',         dot: 'bg-blue-500' },
-  en_produccion: { bg: 'bg-purple-50 text-purple-600 border-purple-100',   dot: 'bg-purple-500' },
-  listo:         { bg: 'bg-green-50 text-green-600 border-green-100',      dot: 'bg-green-500' },
-  entregado:     { bg: 'bg-gray-50 text-gray-600 border-gray-100',         dot: 'bg-gray-400' },
-  rechazado:     { bg: 'bg-red-50 text-red-600 border-red-100',            dot: 'bg-red-500' },
+  solicitado: { bg: 'bg-yellow-50 text-yellow-600 border-yellow-100', dot: 'bg-yellow-500' },
+  cotizado: { bg: 'bg-yellow-50 text-yellow-600 border-yellow-100', dot: 'bg-yellow-500' },
+  aceptado: { bg: 'bg-blue-50 text-blue-600 border-blue-100', dot: 'bg-blue-500' },
+  en_produccion: { bg: 'bg-purple-50 text-purple-600 border-purple-100', dot: 'bg-purple-500' },
+  listo: { bg: 'bg-green-50 text-green-600 border-green-100', dot: 'bg-green-500' },
+  entregado: { bg: 'bg-gray-50 text-gray-600 border-gray-100', dot: 'bg-gray-400' },
+  rechazado: { bg: 'bg-red-50 text-red-600 border-red-100', dot: 'bg-red-500' },
 };
 
 const STATUS_LABEL = {
-  solicitado:    'Solicitado',
-  cotizado:      'Cotizado',
-  aceptado:      'Aprobado',
+  solicitado: 'Solicitado',
+  cotizado: 'Cotizado',
+  aceptado: 'Aprobado',
   en_produccion: 'En producción',
-  listo:         'Listo',
-  entregado:     'Entregado',
-  rechazado:     'Rechazado',
+  listo: 'Listo',
+  entregado: 'Entregado',
+  rechazado: 'Rechazado',
 };
 
 export default function OrderHistory({ onNavigate }) {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [respondingId, setRespondingId] = useState(null); 
+  const [respondingId, setRespondingId] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const { language } = useLanguage();
   const t = translations[language] || {};
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   useEffect(() => {
     if (showOrderModal) {
@@ -67,8 +71,8 @@ export default function OrderHistory({ onNavigate }) {
   };
 
   const handleResponderCotizacion = async (orderId, accion) => {
-    const confirmacion = accion === 'accept' 
-      ? '¿Estás de acuerdo con el precio? El pedido pasará a aprobación para pago.' 
+    const confirmacion = accion === 'accept'
+      ? '¿Estás de acuerdo con el precio? El pedido pasará a aprobación para pago.'
       : '¿Seguro que deseas rechazar esta cotización?';
 
     if (!window.confirm(confirmacion)) return;
@@ -109,11 +113,11 @@ export default function OrderHistory({ onNavigate }) {
   };
 
   const STEPS = [
-    t.cotizado      || 'Cotizado',
-    t.aprobado      || 'Aprobado',
-    t.enProduccion  || 'En producción',
-    t.listo         || 'Listo',
-    t.entregado     || 'Entregado',
+    t.cotizado || 'Cotizado',
+    t.aprobado || 'Aprobado',
+    t.enProduccion || 'En producción',
+    t.listo || 'Listo',
+    t.entregado || 'Entregado',
   ];
 
   const getOrderName = (order) => {
@@ -157,7 +161,7 @@ export default function OrderHistory({ onNavigate }) {
                   onClick={() => { setShowOrderModal(false); onNavigate?.('upload'); }}
                   className="px-5 py-2.5 bg-[#de5c21] hover:bg-[#c24b17] text-white rounded-lg font-medium shadow-sm transition-all hover:shadow text-sm flex items-center gap-1.5"
                 >
-                  <span className="text-lg leading-none mb-[2px]">+</span> {t.solicitarImpresion || 'Solicitar'}
+                  {t.solicitarImpresion || '+ Solicitar'}
                 </button>
                 <button
                   onClick={() => setShowOrderModal(false)}
@@ -185,7 +189,7 @@ export default function OrderHistory({ onNavigate }) {
                     const currentStep = STATUS_TO_STEP[order.status] ?? 0;
                     const style = STATUS_STYLE[order.status] || STATUS_STYLE.solicitado;
                     const label = STATUS_LABEL[order.status] || order.status;
-                    
+
                     // INTELIGENCIA: Revisar si ya existe el comprobante en la lista de archivos
                     const hasProof = order.files?.some(file => file.original_name.includes('Comprobante'));
 
@@ -250,8 +254,8 @@ export default function OrderHistory({ onNavigate }) {
                                   {hasProof ? 'Pago en Revisión' : 'Paso Final: Confirmar Pago'}
                                 </p>
                                 <p className="text-sm text-slate-700 font-medium">
-                                  {hasProof 
-                                    ? 'Hemos recibido tu comprobante. En cuanto validemos la transferencia iniciaremos la impresión.' 
+                                  {hasProof
+                                    ? 'Hemos recibido tu comprobante. En cuanto validemos la transferencia iniciaremos la impresión.'
                                     : 'Por favor sube tu captura de transferencia para que podamos encender las impresoras.'}
                                 </p>
                               </div>
@@ -259,14 +263,14 @@ export default function OrderHistory({ onNavigate }) {
 
                             {!hasProof ? (
                               <>
-                                <input 
-                                  type="file" 
-                                  id={`upload-proof-${order.id}`} 
-                                  className="hidden" 
+                                <input
+                                  type="file"
+                                  id={`upload-proof-${order.id}`}
+                                  className="hidden"
                                   accept="image/*"
                                   onChange={(e) => handleUploadProof(order.id, e.target.files[0])}
                                 />
-                                <button 
+                                <button
                                   disabled={isUploading}
                                   onClick={() => document.getElementById(`upload-proof-${order.id}`).click()}
                                   className="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
@@ -287,32 +291,29 @@ export default function OrderHistory({ onNavigate }) {
                           <div className="flex items-center justify-between w-full relative">
                             {STEPS.map((stepLabel, idx) => {
                               const isCompleted = idx < currentStep;
-                              const isCurrent   = idx === currentStep - 1;
-                              const isLast      = idx === STEPS.length - 1;
+                              const isCurrent = idx === currentStep - 1;
+                              const isLast = idx === STEPS.length - 1;
                               const isLineActive = idx < currentStep - 1;
 
                               return (
                                 <div key={idx} className={`flex items-center ${isLast ? '' : 'flex-1'}`}>
                                   <div className="flex flex-col items-center relative z-10">
-                                    <div className={`w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold transition-all border-[2px] ${
-                                      isCompleted
+                                    <div className={`w-[34px] h-[34px] rounded-full flex items-center justify-center text-sm font-bold transition-all border-[2px] ${isCompleted
                                         ? 'bg-[#de5c21] border-[#de5c21] text-white shadow-sm'
                                         : isCurrent
                                           ? 'bg-white border-[#de5c21] text-[#de5c21] ring-4 ring-[#de5c21]/10'
                                           : 'bg-white border-gray-200 text-gray-400'
-                                    }`}>
+                                      }`}>
                                       {isCompleted ? <LuCheck size={18} strokeWidth={3} /> : idx + 1}
                                     </div>
-                                    <p className={`text-[13px] mt-4 font-semibold absolute top-[40px] whitespace-nowrap text-center ${
-                                      isCompleted ? 'text-gray-500' : isCurrent ? 'text-[#de5c21]' : 'text-gray-400'
-                                    }`}>
+                                    <p className={`text-[13px] mt-4 font-semibold absolute top-[40px] whitespace-nowrap text-center ${isCompleted ? 'text-gray-500' : isCurrent ? 'text-[#de5c21]' : 'text-gray-400'
+                                      }`}>
                                       {stepLabel}
                                     </p>
                                   </div>
                                   {!isLast && (
-                                    <div className={`h-[2px] flex-1 -mx-1 z-0 rounded-full transition-all duration-300 ${
-                                      isLineActive ? 'bg-[#de5c21]' : 'bg-gray-200'
-                                    }`}></div>
+                                    <div className={`h-[2px] flex-1 -mx-1 z-0 rounded-full transition-all duration-300 ${isLineActive ? 'bg-[#de5c21]' : 'bg-gray-200'
+                                      }`}></div>
                                   )}
                                 </div>
                               );

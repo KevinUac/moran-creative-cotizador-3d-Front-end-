@@ -17,6 +17,8 @@ export const translations = {
     crearCuenta: 'Crear Cuenta',
     crearCuentaDesc: 'Regístrate con tu Email',
     nombreCompleto: 'Nombre Completo',
+    telefono: 'Teléfono',
+    direccion: 'Dirección',
     crearCuentaBtn: 'CREAR CUENTA',
     bienvenido: '¡Bienvenido a Moran Creative!',
     bienvenidoDesc: '¿No tienes cuenta? Regístrate aquí',
@@ -26,7 +28,7 @@ export const translations = {
 
     // MainMenu
     convierteIdeas: 'Transforma tus ideas en realidad 3D',
-    impresionProfesional: '✨ Impresión 3D Profesional',
+    impresionProfesional: 'Impresión 3D Profesional',
     descripcionPrincipal: 'Sube tu archivo STL u OBJ y recibe una cotización profesional en menos de 24 horas. Diseñado para emprendedores y empresas.',
     comenzar: 'Comenzar ahora',
     porQueElegirnos: '¿Por qué elegirnos?',
@@ -148,6 +150,8 @@ export const translations = {
     crearCuenta: 'Create Account',
     crearCuentaDesc: 'Register with Email',
     nombreCompleto: 'Full Name',
+    telefono: 'Phone',
+    direccion: 'Address',
     crearCuentaBtn: 'CREATE ACCOUNT',
     bienvenido: 'Welcome to Moran Creative!',
     bienvenidoDesc: "Don't have an account? Register here",
@@ -157,7 +161,7 @@ export const translations = {
 
     // MainMenu
     convierteIdeas: 'Transform Your Ideas Into 3D Reality',
-    impresionProfesional: '✨ Professional 3D Printing',
+    impresionProfesional: 'Professional 3D Printing',
     descripcionPrincipal: 'Upload your STL or OBJ file and receive a professional quote in less than 24 hours. Designed for entrepreneurs and businesses.',
     comenzar: 'Get Started Now',
     porQueElegirnos: 'Why Choose Us?',

@@ -33,74 +33,73 @@ async function getAIResponse(userMessage) {
   }
 }
 
-// Sistema de IA local para respuestas sin API externa
-function getLocalAIResponse(message) {
-  const lowerMessage = message.toLowerCase();
+// Sistema de IA local inteligente con memoria de contexto
+function getLocalAIResponse(message, fullHistory = []) {
+  const lowerMessage = message.toLowerCase().trim();
 
-  // Preguntas sobre materiales
-  if (lowerMessage.includes('material') || lowerMessage.includes('pla') || lowerMessage.includes('resina') || lowerMessage.includes('abs')) {
-    const responses = [
-      '📌 **Materiales disponibles:**\n• **PLA**: Ideal para prototipos, económico y fácil de imprimir\n• **PLA+**: Mayor resistencia que PLA\n• **ABS**: Resistente al calor, duradero\n• **Resina**: Máxima precisión para detalles finos\n\n¿Cuál es tu proyecto?',
-      '🎨 Contamos con una amplia variedad de colores en cada material. ¿Qué material buscas?',
-      'Los materiales varían en precio y propiedades. ¿Es para algo decorativo, funcional o de alta precisión?'
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Buscar el último mensaje de la IA para entender el contexto
+  const lastAIMessage = [...fullHistory].reverse().find(m => m.sender === 'ai')?.text.toLowerCase() || "";
+
+  // 1. Manejo de respuestas de confirmación o elección directa (ej: "si", "subir diseño")
+  const isShortAffirmation = ['si', 'sí', 'claro', 'va', 'ok', 'dale', 'afirmativo', 'me interesa', 'por favor', 'venga', 'listo', 'ya'].includes(lowerMessage);
+  const isDirectUploadChoice = lowerMessage.includes('subir') || lowerMessage.includes('diseño') || lowerMessage.includes('archivo');
+
+  if (isShortAffirmation || (isDirectUploadChoice && (lastAIMessage.includes('subir') || lastAIMessage.includes('cotización') || lastAIMessage.includes('diseño')))) {
+    if (lastAIMessage.includes('cotización') || lastAIMessage.includes('archivo') || lastAIMessage.includes('diseño') || lastAIMessage.includes('listo')) {
+      return '🚀 **¡Correcto! Sigue estos pasos finales:**\n\n' +
+        '1️⃣ Haz clic en **"Subir Diseño"** en el menú de arriba.\n' +
+        '2️⃣ **Pone tu diseño**: Carga el archivo (STL/OBJ).\n' +
+        '3️⃣ **Completos tus datos**: Nombre, correo y teléfono.\n' +
+        '4️⃣ **Personaliza**: Elige material y cantidad.\n\n' +
+        '¡Y listo! Ya podrás descargar tu PDF. ¿Quieres saber algo más sobre los materiales antes?';
+    }
+    if (lastAIMessage.includes('materiales') || lastAIMessage.includes('precios')) {
+      return '🔬 **Resumen de materiales y precios:**\n\n' +
+        '• **PLA ($0.05/g)**: Ecológico y versátil.\n' +
+        '• **ABS ($0.08/g)**: Fuerte y duradero.\n' +
+        '• **Resina ($0.20/g)**: Ultra-detalle joyería/figuras.\n\n' +
+        '¿Cuál material crees que le sirve más a tu pieza?';
+    }
   }
 
-  // Preguntas sobre precios
-  if (lowerMessage.includes('precio') || lowerMessage.includes('costo') || lowerMessage.includes('cuánto')) {
-    return '💰 Los precios varían según:\n• Material seleccionado\n• Complejidad del diseño\n• Tiempo de impresión\n\nSube tu archivo para una cotización exacta en 24 horas. ¿Necesitas ayuda?';
+  // 2. Detección de fuera de tema mejorada (Regex más robusta)
+  const is3DRelated = /impresi|3d|stl|obj|material|pla|abs|resina|petg|precio|costo|cotiza|envio|tiempo|entrega|pedido|diseno|pieza|crear|maker|moran|paso|como|pasos|subir|archivo|listo|donde|hacer/i.test(lowerMessage);
+  const greetingKeywords = ['hola', 'buenos', 'hi', 'tal', 'que hay', 'que haces', 'buenas'];
+  const isGreeting = greetingKeywords.some(kw => lowerMessage.includes(kw));
+
+  if (!is3DRelated && !isGreeting && lowerMessage.length > 3) {
+    return '🤔 Lo siento, solo puedo apoyarte en temas de **Moran Creative** e **impresión 3D**.\n\n¿Quieres saber los precios de materiales o cómo subir tu diseño para cotizar?';
   }
 
-  // Preguntas sobre tiempo
-  if (lowerMessage.includes('tiempo') || lowerMessage.includes('cuánto tarda') || lowerMessage.includes('entrega')) {
-    return '⏱️ Nuestros tiempos:\n• **Análisis técnico**: < 24 horas\n• **Impresión**: Depende del tamaño (consulta tu cotización)\n• **Envío**: 2-5 días hábiles\n\n¿Tienes un proyecto urgente?';
+  // 3. Proceso de Cotización o Subida Directa
+  if (lowerMessage.includes('cómo') || lowerMessage.includes('como') || lowerMessage.includes('cotizar') || lowerMessage.includes('proceso') || lowerMessage.includes('pasos') || (lowerMessage.includes('subir') && lowerMessage.includes('diseño'))) {
+    return '📲 **Para tu cotización:**\n\n' +
+      'Ve a la pestaña **"Subir Diseño"**. Allí deberás **poner tu diseño**, **completar tus datos** (Nombre, Email, Teléfono) y seleccionar material.\n\n' +
+      'Manejamos:\n• **PLA**: $0.05/g\n• **ABS**: $0.08/g\n• **Resina**: $0.20/g\n\n¿Tienes tu diseño listo o prefieres saber más de algún material antes?';
   }
 
-  // Preguntas sobre proceso
-  if (lowerMessage.includes('proceso') || lowerMessage.includes('cómo funciona') || lowerMessage.includes('funciona')) {
-    return '🔄 Nuestro proceso es simple:\n1️⃣ Subes tu archivo STL/OBJ\n2️⃣ Revisamos técnicamente tu diseño\n3️⃣ Te enviamos cotización detallada\n4️⃣ Confirmas y comenzamos\n5️⃣ Recibes tu proyecto\n\n¿Listos para comenzar?';
-  }
-
-  // Preguntas sobre archivo
-  if (lowerMessage.includes('archivo') || lowerMessage.includes('formato') || lowerMessage.includes('stl') || lowerMessage.includes('obj')) {
-    return '📁 Aceptamos:\n• **STL** (recomendado)\n• **OBJ**\n• Tamaño máximo: 100MB\n\n¿Ya tienes tu archivo listo?';
+  // 4. Materiales y Precios
+  if (lowerMessage.includes('material') || lowerMessage.includes('pla') || lowerMessage.includes('resina') || lowerMessage.includes('abs') || lowerMessage.includes('petg')) {
+    return '🔬 **Precios en Moran Creative:**\n\n' +
+      '• **PLA/PLA+**: $0.05 por gramo.\n' +
+      '• **ABS/PETG**: $0.08 por gramo.\n' +
+      '• **Resina**: $0.20 por gramo.\n\n' +
+      '¿Deseas ir directo a **Subir Diseño** para cotizar tu pieza o prefieres que te hable más de algún material?';
   }
 
   // Saludos
-  if (lowerMessage.includes('hola') || lowerMessage.includes('buenos') || lowerMessage.includes('hi')) {
-    return '👋 ¡Hola! Soy la IA de asistencia de Moran Creative. ¿En qué puedo ayudarte con tu proyecto de impresión 3D?';
+  if (isGreeting) {
+    return '👋 ¡Hola! Soy el experto de **Moran Creative**. \n\n¿Deseas saber sobre materiales y precios, o prefieres que te explique cómo subir tu diseño para cotizar?';
   }
 
-  // Preguntas sobre contacto/admin
-  if (lowerMessage.includes('hablar con') || lowerMessage.includes('admin') || lowerMessage.includes('persona') || lowerMessage.includes('humano')) {
-    return '👤 Claro, puedo conectarte con un administrador. Mientras esperas, ¿Cuál es tu consulta específica? Así puede ayudarte mejor.';
-  }
-
-  // Preguntas sobre calidad/acabado
-  if (lowerMessage.includes('calidad') || lowerMessage.includes('acabado') || lowerMessage.includes('precisión')) {
-    return '⭐ Garantizamos:\n• Precisión de ±0.5mm\n• Acabado suave y profesional\n• Revisión de calidad en cada proyecto\n\n¿Qué tipo de acabado necesitas?';
-  }
-
-  // Agradecimiento
-  if (lowerMessage.includes('gracias') || lowerMessage.includes('thanks')) {
-    return '😊 ¡De nada! Estoy aquí para ayudarte. ¿Hay algo más que necesites saber?';
-  }
-
-  // Respuesta por defecto inteligente
-  const defaultResponses = [
-    '💡 Interesante. ¿Puedes contarme más detalles sobre tu proyecto?',
-    '🤔 Entendido. ¿Es para un proyecto personal, comercial o educativo?',
-    '✨ Suena emocionante. ¿Tienes ya el archivo 3D o necesitas ayuda?',
-    '🎯 Bien, aquí estamos para ayudarte. ¿Qué material prefieres?'
-  ];
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  // Respuesta por defecto
+  return '✨ Recuerda que para cotizar debes **poner tu diseño** y **completar tus datos** en la sección de **"Subir Diseño"**.\n\n¿En qué más te puedo ayudar hoy?';
 }
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: '👋 ¡Hola! Soy la IA de Moran Creative. ¿En qué puedo ayudarte hoy con tu proyecto de impresión 3D?', sender: 'ai', timestamp: new Date(Date.now() - 60000) }
+    { id: 1, text: '👋 ¡Hola! Soy el experto de Moran Creative. ¿Deseas saber sobre nuestros materiales (PLA, ABS, Resina), precios o cómo realizar una cotización?', sender: 'ai', timestamp: new Date(Date.now() - 60000) }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -116,19 +115,36 @@ export default function ChatWidget() {
 
   const handleSend = async () => {
     if (inputValue.trim()) {
+      const userText = inputValue;
+
+      // 3. Verificación de repetición mejorada
+      const lastUserMsg = messages.filter(m => m.sender === 'user').pop();
+      if (lastUserMsg && userText.toLowerCase().trim() === lastUserMsg.text.toLowerCase().trim() && !['si', 'sí', 'no', 'claro', 'ok', 'va'].includes(userText.toLowerCase().trim())) {
+        const repeatMsg = {
+          id: messages.length + 1,
+          text: 'Entiendo que es un detalle importante. Como te mencioné, puedes **poner tu diseño** en la pestaña de **"Subir Diseño"**. ¿Tienes alguna otra duda?',
+          sender: 'ai',
+          timestamp: new Date()
+        };
+        setMessages([...messages, { id: messages.length + 2, text: userText, sender: 'user', timestamp: new Date() }, repeatMsg]);
+        setInputValue('');
+        return;
+      }
+
       const newMessage = {
         id: messages.length + 1,
-        text: inputValue,
+        text: userText,
         sender: 'user',
         timestamp: new Date()
       };
+
       setMessages([...messages, newMessage]);
       setInputValue('');
       setIsLoading(true);
 
       // Obtener respuesta de IA
       setTimeout(async () => {
-        const aiResponse = await getLocalAIResponse(inputValue);
+        const aiResponse = await getLocalAIResponse(userText, messages);
         const aiMessage = {
           id: messages.length + 2,
           text: aiResponse,
@@ -137,7 +153,7 @@ export default function ChatWidget() {
         };
         setMessages(prev => [...prev, aiMessage]);
         setIsLoading(false);
-      }, 300);
+      }, 400);
     }
   };
 
@@ -158,7 +174,7 @@ export default function ChatWidget() {
           {/* Header */}
           <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-t-2xl">
             <h3 className="font-semibold">Asistente IA</h3>
-            <p className="text-xs text-red-100">Responde al instant</p>
+            <p className="text-xs text-red-100">Responde al instante</p>
           </div>
 
           {/* Messages */}
@@ -169,11 +185,10 @@ export default function ChatWidget() {
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-xs rounded-lg px-4 py-2 text-sm leading-relaxed ${
-                    msg.sender === 'user'
-                      ? 'bg-red-500 text-white rounded-br-none'
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none whitespace-pre-wrap'
-                  }`}
+                  className={`max-w-xs rounded-lg px-4 py-2 text-sm leading-relaxed ${msg.sender === 'user'
+                    ? 'bg-red-500 text-white rounded-br-none'
+                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none whitespace-pre-wrap'
+                    }`}
                 >
                   {msg.text}
                 </div>
